@@ -309,14 +309,23 @@ export const AppProvider = ({ children }) => {
     }
   };
 
-  const loginAdmin = (pin) => {
-    if (pin === '1234' || pin === 'Bdktest4' || pin === 'admin') {
+  const loginAdmin = (password) => {
+    const validPasswords = [
+      'Bdk@Admin2026!Dz',
+      'Devisly#SuperAdmin2026',
+      'Bdktest4@2026',
+      'Karim@Devisly2026',
+      'Bdktest4',
+      '1234'
+    ];
+
+    if (validPasswords.includes(password)) {
       setIsAdminLoggedIn(true);
       navigateTo('admin');
       showToast('تم تسجيل الدخول إلى لوحة تحكم الإدارة العليا (Super Admin) بنجاح!');
       return true;
     } else {
-      showToast('رمز PIN الإدارة غير صحيح.');
+      showToast('كلمة مرور الإدارة غير صحيحة.');
       return false;
     }
   };

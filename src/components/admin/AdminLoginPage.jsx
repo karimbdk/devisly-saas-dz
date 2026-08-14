@@ -6,17 +6,20 @@ import {
   KeyRound,
   ArrowRight,
   Sparkles,
-  Server
+  Server,
+  Eye,
+  EyeOff
 } from 'lucide-react';
 
 export const AdminLoginPage = ({ onCancel }) => {
   const { loginAdmin } = useApp();
-  const [pin, setPin] = useState('');
+  const [adminPassword, setAdminPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState(false);
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const success = loginAdmin(pin);
+    const success = loginAdmin(adminPassword.trim());
     if (!success) {
       setError(true);
     }
@@ -29,37 +32,44 @@ export const AdminLoginPage = ({ onCancel }) => {
         
         <div className="text-center space-y-2">
           <div className="w-16 h-16 bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-amber-500/10">
-            <Lock className="w-8 h-8" />
+            <ShieldCheck className="w-8 h-8" />
           </div>
           <span className="text-[10px] font-black text-amber-400 uppercase tracking-widest bg-amber-500/10 border border-amber-500/20 px-3 py-1 rounded-full inline-block">
-            بوابة الإدارة العليا السرية
+            بوابة الإدارة العليا المشفرة
           </span>
           <h1 className="text-2xl font-black text-white">Devisly Super Admin Portal</h1>
           <p className="text-xs text-slate-400">
-            لوحة تحكم إدارة الحسابات والاشتراكات والتحصيل المالي
+            لوحة تحكم إدارة الحسابات الحقيقية والاشتراكات والتحصيل المالي
           </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4 text-xs font-bold">
           <div>
-            <label className="block text-slate-300 mb-2">رمز PIN أو كلمة مرور الإدارة</label>
+            <label className="block text-slate-300 mb-2">كلمة مرور الإدارة القوية</label>
             <div className="relative">
               <input
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 required
                 autoFocus
-                placeholder="ادخل رمز PIN (مثال: 1234 أو Bdktest4)"
-                value={pin}
-                onChange={(e) => { setPin(e.target.value); setError(false); }}
-                className={`w-full bg-slate-950 border pl-4 pr-10 py-3.5 rounded-2xl text-white outline-none font-mono text-center text-sm tracking-widest transition-all ${
+                placeholder="ادخل كلمة مرور الإدارة المشفرة"
+                value={adminPassword}
+                onChange={(e) => { setAdminPassword(e.target.value); setError(false); }}
+                className={`w-full bg-slate-950 border pl-10 pr-10 py-3.5 rounded-2xl text-white outline-none font-mono text-sm tracking-wider transition-all ${
                   error ? 'border-rose-500 focus:border-rose-500' : 'border-slate-800 focus:border-amber-500'
                 }`}
               />
-              <KeyRound className="w-4 h-4 text-slate-500 absolute right-3.5 top-1/2 -translate-y-1/2" />
+              <Lock className="w-4 h-4 text-slate-500 absolute right-3.5 top-1/2 -translate-y-1/2" />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300"
+              >
+                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
             </div>
             {error && (
               <span className="text-[11px] text-rose-400 mt-1.5 block text-center font-bold">
-                رمز المرور غير صحيح، يرجى المحاولة مجدداً
+                كلمة المرور غير صحيحة، يرجى التأكد وإعادة المحاولة
               </span>
             )}
           </div>
@@ -68,8 +78,8 @@ export const AdminLoginPage = ({ onCancel }) => {
             type="submit"
             className="w-full py-3.5 bg-amber-500 hover:bg-amber-400 active:scale-95 text-slate-950 rounded-2xl font-black text-sm shadow-lg shadow-amber-500/20 transition-all flex items-center justify-center gap-2"
           >
-            <ShieldCheck className="w-4 h-4" />
-            <span>تسجيل الدخول للإدارة</span>
+            <KeyRound className="w-4 h-4" />
+            <span>دخول لوحة التحكم العليا</span>
           </button>
 
           {onCancel && (
@@ -84,7 +94,7 @@ export const AdminLoginPage = ({ onCancel }) => {
         </form>
 
         <div className="pt-4 border-t border-slate-800/80 text-center text-[10px] text-slate-500">
-          هذا المسار مخصص لمالك المنصة وإدارة الاشتراكات فقط 🔒
+          مسار محمي ومخصص لمالك المنصة وإدارة الاشتراكات فقط 🔒
         </div>
       </div>
     </div>

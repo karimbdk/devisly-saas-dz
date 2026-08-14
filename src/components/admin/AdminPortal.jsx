@@ -41,8 +41,12 @@ export const AdminPortal = () => {
   const [activeAdminTab, setActiveAdminTab] = useState('users'); // 'users' | 'requests'
   const [search, setSearch] = useState('');
 
-  // Local accounts state synced from context
+  // Local accounts state synced live from context
   const [adminAccounts, setAdminAccounts] = useState(accounts);
+
+  React.useEffect(() => {
+    setAdminAccounts(accounts);
+  }, [accounts]);
 
   // 2. Payment Requests State
   const [requests, setRequests] = useState([
