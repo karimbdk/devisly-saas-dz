@@ -11,25 +11,34 @@ import {
   ArrowRight,
   ArrowLeft,
   CheckCircle2,
+  AlertCircle,
   Zap,
   Eye,
   EyeOff,
   ShieldCheck,
   Briefcase,
   Sparkles,
-  ChevronLeft
+  KeyRound,
+  MessageSquare
 } from 'lucide-react';
 
 export const AuthPage = ({ initialMode = 'register', onClose }) => {
-  const { login, register, quickLogin, accounts } = useApp();
+  const { login, register, resetPassword } = useApp();
 
-  const [mode, setMode] = useState(initialMode); // 'login' | 'register'
-  const [step, setStep] = useState(1); // 1: Personal Info, 2: Business Profile
+  const [mode, setMode] = useState(initialMode); // 'login' | 'register' | 'forgot'
+  const [step, setStep] = useState(1); // For register (1/2) or forgot (1/2)
   const [showPassword, setShowPassword] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
 
   // Login form state
   const [loginEmailOrPhone, setLoginEmailOrPhone] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
+
+  // Forgot password state
+  const [forgotIdentifier, setForgotIdentifier] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
 
   // Registration form state
   const [formData, setFormData] = useState({
@@ -38,7 +47,7 @@ export const AuthPage = ({ initialMode = 'register', onClose }) => {
     email: '',
     password: '',
     businessName: '',
-    wilaya: 'الجزائر',
+    wilaya: '16 - الجزائر',
     activity: 'أعمال الكهرباء والتشطيب',
     nif: '',
     rc: ''
@@ -61,12 +70,20 @@ export const AuthPage = ({ initialMode = 'register', onClose }) => {
 
   const handleLogin = (e) => {
     e.preventDefault();
-    login(loginEmailOrPhone, loginPassword);
+    setErrorMessage('');
+    const result = login(loginEmailOrPhone, loginPassword);
+    if (!result.success) {
+      setErrorMessage(result.message || 'بيانات الدخول غير صحيحة.');
+    }
   };
 
   const handleRegister = (e) => {
     e.preventDefault();
-    if (!formData.name || !formData.phone) return;
+    setErrorMessage('');
+    if (!formData.name || !formData.phone) {
+      setErrorMessage('يرجى ملء جميع الحقول المطلوبة.');
+      return;
+    }
 
     register({
       name: formData.name,
@@ -82,17 +99,45 @@ export const AuthPage = ({ initialMode = 'register', onClose }) => {
     });
   };
 
+  const handleResetSubmit = (e) => {
+    e.preventDefault();
+    setErrorMessage('');
+    setSuccessMessage('');
+
+    if (step === 1) {
+      if (!forgotIdentifier) {
+        setErrorMessage('يرجى كتابة رقم هاتفك أو بريدك الإلكتروني.');
+        return;
+      }
+      setStep(2);
+    } else {
+      if (!newPassword || newPassword.length < 3) {
+        setErrorMessage('يرجى اختيار كلمة مرور من 3 أحرف على الأقل.');
+        return;
+      }
+      if (newPassword !== confirmPassword) {
+        setErrorMessage('كلمتا المرور غير متطابقتين.');
+        return;
+      }
+
+      const result = resetPassword(forgotIdentifier, newPassword);
+      if (!result.success) {
+        setErrorMessage(result.message || 'تعذر تعيين كلمة المرور.');
+      }
+    }
+  };
+
   return (
-    <div className="fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 overflow-y-auto font-sans" dir="rtl">
-      <div className="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-4xl shadow-2xl overflow-hidden flex flex-col md:flex-row min-h-[600px] animate-in zoom-in-95 text-slate-100">
+    <div className="fixed inset-0 z-50 bg-[#050814]/90 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 overflow-y-auto font-sans" dir="rtl">
+      <div className="bg-[#0B1120] border border-slate-800 rounded-3xl w-full max-w-4xl shadow-2xl overflow-hidden flex flex-col md:flex-row min-h-[580px] animate-in zoom-in-95 text-slate-100">
         
-        {/* Left Side: Brand Showcase & Value Proposition */}
-        <div className="hidden md:flex md:w-5/12 bg-gradient-to-br from-brand-950 via-slate-900 to-navy-950 p-8 flex-col justify-between border-l border-slate-800 relative overflow-hidden">
+        {/* Left Side: Brand Showcase */}
+        <div className="hidden md:flex md:w-5/12 bg-gradient-to-br from-[#091024] via-[#0B1226] to-[#070B19] p-8 flex-col justify-between border-l border-slate-800 relative overflow-hidden">
           <div className="absolute top-0 right-0 w-64 h-64 bg-brand-600/10 rounded-full blur-3xl pointer-events-none" />
           
           <div>
             <div className="flex items-center gap-2.5 mb-8">
-              <div className="w-10 h-10 rounded-2xl bg-brand-600 flex items-center justify-center text-white shadow-lg shadow-brand-500/20">
+              <div className="w-10 h-10 rounded-2xl bg-brand-600 flex items-center justify-center text-white shadow-lg shadow-brand-500/25">
                 <FileText className="w-5 h-5 stroke-[2.5]" />
               </div>
               <span className="text-2xl font-black text-white tracking-tight">
@@ -100,7 +145,7 @@ export const AuthPage = ({ initialMode = 'register', onClose }) => {
               </span>
             </div>
 
-            <div className="space-y-6">
+            <div className="space-y-5">
               <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-brand-500/10 border border-brand-500/30 rounded-full text-[11px] font-black text-brand-300">
                 <Sparkles className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
                 <span>المنظومة الأولى للخدمات في الجزائر</span>
@@ -110,43 +155,43 @@ export const AuthPage = ({ initialMode = 'register', onClose }) => {
                 انضم لمئات الحرفيين وأصحاب المؤسسات الخدمية في الجزائر
               </h2>
 
-              <p className="text-xs text-slate-300 leading-relaxed font-medium">
+              <p className="text-xs text-slate-400 leading-relaxed font-medium">
                 حوّل طريقة عملك اليومية إلى نظام رقمي محترف يزيد من سرعة موافقة زبائنك ويضمن تحصيل أموالك في وقتها.
               </p>
 
-              <div className="space-y-3 pt-2">
-                <div className="flex items-center gap-2.5 text-xs text-slate-200 font-bold">
-                  <div className="w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-[10px]">✓</div>
+              <div className="space-y-2.5 pt-2">
+                <div className="flex items-center gap-2.5 text-xs text-slate-300 font-bold">
+                  <div className="w-4 h-4 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-[10px]">✓</div>
                   <span>عروض أسعار وفواتير بالدينار الجزائري (DZD)</span>
                 </div>
-                <div className="flex items-center gap-2.5 text-xs text-slate-200 font-bold">
-                  <div className="w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-[10px]">✓</div>
+                <div className="flex items-center gap-2.5 text-xs text-slate-300 font-bold">
+                  <div className="w-4 h-4 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-[10px]">✓</div>
                   <span>روابط واتساب تفاعلية وسندات قبض بالتفقيط</span>
                 </div>
-                <div className="flex items-center gap-2.5 text-xs text-slate-200 font-bold">
-                  <div className="w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-[10px]">✓</div>
+                <div className="flex items-center gap-2.5 text-xs text-slate-300 font-bold">
+                  <div className="w-4 h-4 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-[10px]">✓</div>
                   <span>طباعة فورية A4 و A5 و Thermal 80mm</span>
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="p-4 bg-slate-900/80 rounded-2xl border border-slate-800 text-[11px] text-slate-400">
+          <div className="p-3.5 bg-slate-900/90 rounded-2xl border border-slate-800 text-[11px] text-slate-400">
             <p className="font-bold text-slate-200 mb-1">💬 رأي حرفي:</p>
             <p className="italic">«من نهار بديت نبعث ديفي بـ Devisly الزبائن ولاو يوافقو في نفس النهار وبلا تفاوض زايد.»</p>
-            <span className="block text-[10px] text-brand-400 font-bold mt-1.5">— سمير، مقاول كهرباء، وهران</span>
+            <span className="block text-[10px] text-brand-400 font-bold mt-1">— سمير، مقاول كهرباء، وهران</span>
           </div>
         </div>
 
         {/* Right Side: Auth Forms */}
-        <div className="flex-1 p-6 sm:p-10 flex flex-col justify-between bg-slate-900">
+        <div className="flex-1 p-6 sm:p-9 flex flex-col justify-between bg-[#0B1120]">
           
-          {/* Top Bar with Mode Switcher & Close */}
-          <div className="flex items-center justify-between pb-6 border-b border-slate-800">
-            <div className="flex items-center gap-1.5 bg-slate-950 p-1 rounded-2xl border border-slate-800 text-xs font-black">
+          {/* Top Tabs */}
+          <div className="flex items-center justify-between pb-5 border-b border-slate-800">
+            <div className="flex items-center gap-1.5 bg-[#070B19] p-1 rounded-2xl border border-slate-800 text-xs font-black">
               <button
                 type="button"
-                onClick={() => { setMode('register'); setStep(1); }}
+                onClick={() => { setMode('register'); setStep(1); setErrorMessage(''); }}
                 className={`px-4 py-2 rounded-xl transition-all ${
                   mode === 'register' ? 'bg-brand-600 text-white shadow-md' : 'text-slate-400 hover:text-white'
                 }`}
@@ -155,7 +200,7 @@ export const AuthPage = ({ initialMode = 'register', onClose }) => {
               </button>
               <button
                 type="button"
-                onClick={() => setMode('login')}
+                onClick={() => { setMode('login'); setErrorMessage(''); }}
                 className={`px-4 py-2 rounded-xl transition-all ${
                   mode === 'login' ? 'bg-brand-600 text-white shadow-md' : 'text-slate-400 hover:text-white'
                 }`}
@@ -172,9 +217,17 @@ export const AuthPage = ({ initialMode = 'register', onClose }) => {
             </button>
           </div>
 
+          {/* Error Message Box */}
+          {errorMessage && (
+            <div className="mt-4 p-3 bg-rose-500/10 border border-rose-500/30 rounded-xl text-rose-300 text-xs font-bold flex items-center gap-2 animate-in fade-in">
+              <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />
+              <span>{errorMessage}</span>
+            </div>
+          )}
+
           {/* 1. LOGIN MODE */}
           {mode === 'login' && (
-            <div className="py-6 space-y-6 animate-in fade-in">
+            <div className="py-4 space-y-5 animate-in fade-in">
               <div>
                 <h3 className="text-xl font-black text-white">تسجيل الدخول إلى حسابك</h3>
                 <p className="text-xs text-slate-400 mt-1">ادخل رقم الهاتف أو البريد الإلكتروني للوصول إلى مساحة عملك</p>
@@ -187,25 +240,34 @@ export const AuthPage = ({ initialMode = 'register', onClose }) => {
                     <input
                       type="text"
                       required
-                      placeholder="0555 12 34 56 أو contact@domain.dz"
+                      placeholder="مثال: 0555123456 أو contact@domain.dz"
                       value={loginEmailOrPhone}
-                      onChange={(e) => setLoginEmailOrPhone(e.target.value)}
-                      className="w-full bg-slate-950 border border-slate-800 pl-4 pr-10 py-3 rounded-2xl text-white outline-none focus:border-brand-500 font-mono text-xs"
+                      onChange={(e) => { setLoginEmailOrPhone(e.target.value); setErrorMessage(''); }}
+                      className="w-full bg-[#070B19] border border-slate-800 pl-4 pr-10 py-3 rounded-2xl text-white outline-none focus:border-brand-500 font-mono text-xs"
                     />
                     <User className="w-4 h-4 text-slate-500 absolute right-3.5 top-1/2 -translate-y-1/2" />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-slate-300 mb-1.5">كلمة المرور</label>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="text-slate-300">كلمة المرور</label>
+                    <button
+                      type="button"
+                      onClick={() => { setMode('forgot'); setStep(1); setErrorMessage(''); }}
+                      className="text-[11px] text-brand-400 hover:text-brand-300 hover:underline font-bold"
+                    >
+                      نسيت كلمة المرور؟
+                    </button>
+                  </div>
                   <div className="relative">
                     <input
                       type={showPassword ? 'text' : 'password'}
                       required
                       placeholder="••••••••"
                       value={loginPassword}
-                      onChange={(e) => setLoginPassword(e.target.value)}
-                      className="w-full bg-slate-950 border border-slate-800 pl-10 pr-10 py-3 rounded-2xl text-white outline-none focus:border-brand-500 font-mono text-xs"
+                      onChange={(e) => { setLoginPassword(e.target.value); setErrorMessage(''); }}
+                      className="w-full bg-[#070B19] border border-slate-800 pl-10 pr-10 py-3 rounded-2xl text-white outline-none focus:border-brand-500 font-mono text-xs"
                     />
                     <Lock className="w-4 h-4 text-slate-500 absolute right-3.5 top-1/2 -translate-y-1/2" />
                     <button
@@ -229,12 +291,91 @@ export const AuthPage = ({ initialMode = 'register', onClose }) => {
             </div>
           )}
 
-          {/* 2. MULTI-STEP REGISTRATION */}
-          {mode === 'register' && (
+          {/* 2. FORGOT PASSWORD SYSTEM */}
+          {mode === 'forgot' && (
             <div className="py-4 space-y-5 animate-in fade-in">
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <button
+                    type="button"
+                    onClick={() => { setMode('login'); setErrorMessage(''); }}
+                    className="text-xs text-brand-400 hover:text-brand-300 font-bold"
+                  >
+                    ← العودة لتسجيل الدخول
+                  </button>
+                </div>
+                <h3 className="text-xl font-black text-white">استعادة وتعيين كلمة المرور</h3>
+                <p className="text-xs text-slate-400 mt-1">
+                  {step === 1 ? 'ادخل رقم هاتفك المسجل لتأكيد الحساب' : 'ادخل كلمة المرور الجديدة لحسابك'}
+                </p>
+              </div>
+
+              <form onSubmit={handleResetSubmit} className="space-y-4 text-xs font-bold">
+                {step === 1 ? (
+                  <div>
+                    <label className="block text-slate-300 mb-1.5">رقم الهاتف المسجل أو البريد الإلكتروني</label>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        required
+                        autoFocus
+                        placeholder="مثال: 0555123456 أو contact@domain.dz"
+                        value={forgotIdentifier}
+                        onChange={(e) => { setForgotIdentifier(e.target.value); setErrorMessage(''); }}
+                        className="w-full bg-[#070B19] border border-slate-800 pl-4 pr-10 py-3 rounded-2xl text-white outline-none focus:border-brand-500 font-mono text-xs"
+                      />
+                      <Phone className="w-4 h-4 text-slate-500 absolute right-3.5 top-1/2 -translate-y-1/2" />
+                    </div>
+                    <p className="text-[11px] text-slate-500 mt-1.5">
+                      سيتم التحقق من وجود الحساب وإتاحة تعيين كلمة المرور فورياً.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-slate-300 mb-1">كلمة المرور الجديدة *</label>
+                      <input
+                        type="password"
+                        required
+                        autoFocus
+                        placeholder="••••••••"
+                        value={newPassword}
+                        onChange={(e) => { setNewPassword(e.target.value); setErrorMessage(''); }}
+                        className="w-full bg-[#070B19] border border-slate-800 p-2.5 rounded-xl text-white outline-none focus:border-brand-500 font-mono"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-slate-300 mb-1">تأكيد كلمة المرور الجديدة *</label>
+                      <input
+                        type="password"
+                        required
+                        placeholder="••••••••"
+                        value={confirmPassword}
+                        onChange={(e) => { setConfirmPassword(e.target.value); setErrorMessage(''); }}
+                        className="w-full bg-[#070B19] border border-slate-800 p-2.5 rounded-xl text-white outline-none focus:border-brand-500 font-mono"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                <button
+                  type="submit"
+                  className="w-full py-3.5 bg-brand-600 hover:bg-brand-500 active:scale-95 text-white rounded-2xl font-black text-sm shadow-lg shadow-brand-600/30 transition-all flex items-center justify-center gap-2"
+                >
+                  <KeyRound className="w-4 h-4" />
+                  <span>{step === 1 ? 'متابعة وتأكيد الحساب' : 'حفظ كلمة المرور والدخول'}</span>
+                </button>
+              </form>
+            </div>
+          )}
+
+          {/* 3. MULTI-STEP REGISTRATION */}
+          {mode === 'register' && (
+            <div className="py-2 space-y-4 animate-in fade-in">
               
-              {/* Step Progress Bar */}
-              <div className="flex items-center justify-between mb-2">
+              {/* Step Progress */}
+              <div className="flex items-center justify-between mb-1">
                 <div>
                   <h3 className="text-lg font-black text-white">
                     {step === 1 ? 'الخطوة 1: معلوماتك الشخصية' : 'الخطوة 2: هوية ونشاط المؤسسة'}
@@ -244,18 +385,18 @@ export const AuthPage = ({ initialMode = 'register', onClose }) => {
                   </p>
                 </div>
 
-                <div className="flex items-center gap-1.5 font-mono text-xs font-black text-brand-400 bg-brand-500/10 px-3 py-1 rounded-full border border-brand-500/20">
+                <div className="flex items-center gap-1 font-mono text-xs font-black text-brand-400 bg-brand-500/10 px-2.5 py-0.5 rounded-full border border-brand-500/20">
                   <span>{step}</span>
                   <span>/</span>
                   <span>2</span>
                 </div>
               </div>
 
-              <form onSubmit={step === 1 ? (e) => { e.preventDefault(); setStep(2); } : handleRegister} className="space-y-3.5 text-xs font-bold">
+              <form onSubmit={step === 1 ? (e) => { e.preventDefault(); setStep(2); } : handleRegister} className="space-y-3 text-xs font-bold">
                 
                 {/* STEP 1: Personal Contact */}
                 {step === 1 && (
-                  <div className="space-y-3 animate-in fade-in">
+                  <div className="space-y-2.5 animate-in fade-in">
                     <div>
                       <label className="block text-slate-300 mb-1">الاسم الكامل *</label>
                       <div className="relative">
@@ -265,7 +406,7 @@ export const AuthPage = ({ initialMode = 'register', onClose }) => {
                           placeholder="مثال: يوسف بلحاج"
                           value={formData.name}
                           onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                          className="w-full bg-slate-950 border border-slate-800 pl-4 pr-10 py-2.5 rounded-xl text-white outline-none focus:border-brand-500"
+                          className="w-full bg-[#070B19] border border-slate-800 pl-4 pr-10 py-2.5 rounded-xl text-white outline-none focus:border-brand-500"
                         />
                         <User className="w-4 h-4 text-slate-500 absolute right-3.5 top-1/2 -translate-y-1/2" />
                       </div>
@@ -277,10 +418,10 @@ export const AuthPage = ({ initialMode = 'register', onClose }) => {
                         <input
                           type="tel"
                           required
-                          placeholder="+213 550 12 34 56"
+                          placeholder="+213 550 12 34 56 أو 0550123456"
                           value={formData.phone}
                           onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                          className="w-full bg-slate-950 border border-slate-800 pl-4 pr-10 py-2.5 rounded-xl text-white outline-none focus:border-brand-500 font-mono"
+                          className="w-full bg-[#070B19] border border-slate-800 pl-4 pr-10 py-2.5 rounded-xl text-white outline-none focus:border-brand-500 font-mono"
                         />
                         <Phone className="w-4 h-4 text-slate-500 absolute right-3.5 top-1/2 -translate-y-1/2" />
                       </div>
@@ -294,7 +435,7 @@ export const AuthPage = ({ initialMode = 'register', onClose }) => {
                           placeholder="contact@domain.dz"
                           value={formData.email}
                           onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                          className="w-full bg-slate-950 border border-slate-800 pl-4 pr-10 py-2.5 rounded-xl text-white outline-none focus:border-brand-500 font-mono"
+                          className="w-full bg-[#070B19] border border-slate-800 pl-4 pr-10 py-2.5 rounded-xl text-white outline-none focus:border-brand-500 font-mono"
                         />
                         <Mail className="w-4 h-4 text-slate-500 absolute right-3.5 top-1/2 -translate-y-1/2" />
                       </div>
@@ -309,7 +450,7 @@ export const AuthPage = ({ initialMode = 'register', onClose }) => {
                           placeholder="اختر كلمة مرور آمنة"
                           value={formData.password}
                           onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                          className="w-full bg-slate-950 border border-slate-800 pl-10 pr-10 py-2.5 rounded-xl text-white outline-none focus:border-brand-500 font-mono"
+                          className="w-full bg-[#070B19] border border-slate-800 pl-10 pr-10 py-2.5 rounded-xl text-white outline-none focus:border-brand-500 font-mono"
                         />
                         <Lock className="w-4 h-4 text-slate-500 absolute right-3.5 top-1/2 -translate-y-1/2" />
                         <button
@@ -324,7 +465,7 @@ export const AuthPage = ({ initialMode = 'register', onClose }) => {
 
                     <button
                       type="submit"
-                      className="w-full py-3.5 bg-brand-600 hover:bg-brand-500 text-white rounded-2xl font-black text-xs shadow-lg shadow-brand-600/30 transition-all flex items-center justify-center gap-2 mt-4"
+                      className="w-full py-3.5 bg-brand-600 hover:bg-brand-500 text-white rounded-2xl font-black text-xs shadow-lg shadow-brand-600/30 transition-all flex items-center justify-center gap-2 mt-2"
                     >
                       <span>المتابعة لخطوة النشاط والمؤسسة</span>
                       <ArrowRight className="w-4 h-4 rotate-180" />
@@ -334,7 +475,7 @@ export const AuthPage = ({ initialMode = 'register', onClose }) => {
 
                 {/* STEP 2: Business & Activity Info */}
                 {step === 2 && (
-                  <div className="space-y-3 animate-in fade-in">
+                  <div className="space-y-2.5 animate-in fade-in">
                     <div>
                       <label className="block text-slate-300 mb-1">اسم المؤسسة أو الورشة *</label>
                       <div className="relative">
@@ -344,7 +485,7 @@ export const AuthPage = ({ initialMode = 'register', onClose }) => {
                           placeholder="مثال: ورشة التميز للأشغال العامة والتشطيب"
                           value={formData.businessName}
                           onChange={(e) => setFormData({ ...formData, businessName: e.target.value })}
-                          className="w-full bg-slate-950 border border-slate-800 pl-4 pr-10 py-2.5 rounded-xl text-white outline-none focus:border-brand-500"
+                          className="w-full bg-[#070B19] border border-slate-800 pl-4 pr-10 py-2.5 rounded-xl text-white outline-none focus:border-brand-500"
                         />
                         <Building className="w-4 h-4 text-slate-500 absolute right-3.5 top-1/2 -translate-y-1/2" />
                       </div>
@@ -356,7 +497,7 @@ export const AuthPage = ({ initialMode = 'register', onClose }) => {
                         <select
                           value={formData.wilaya}
                           onChange={(e) => setFormData({ ...formData, wilaya: e.target.value })}
-                          className="w-full bg-slate-950 border border-slate-800 p-2.5 rounded-xl text-white outline-none focus:border-brand-500"
+                          className="w-full bg-[#070B19] border border-slate-800 p-2.5 rounded-xl text-white outline-none focus:border-brand-500"
                         >
                           {algerianWilayas.map(w => (
                             <option key={w} value={w}>{w}</option>
@@ -365,37 +506,37 @@ export const AuthPage = ({ initialMode = 'register', onClose }) => {
                       </div>
 
                       <div>
-                        <label className="block text-slate-300 mb-1">مجال النشاط الأساسي</label>
+                        <label className="block text-slate-300 mb-1">مجال النشاط</label>
                         <input
                           type="text"
                           placeholder="مثال: كهرباء، ألمنيوم، كاميرات"
                           value={formData.activity}
                           onChange={(e) => setFormData({ ...formData, activity: e.target.value })}
-                          className="w-full bg-slate-950 border border-slate-800 p-2.5 rounded-xl text-white outline-none focus:border-brand-500"
+                          className="w-full bg-[#070B19] border border-slate-800 p-2.5 rounded-xl text-white outline-none focus:border-brand-500"
                         />
                       </div>
                     </div>
 
                     <div className="grid grid-cols-2 gap-2">
                       <div>
-                        <label className="block text-slate-300 mb-1">رقم السجل التجاري RC (اختياري)</label>
+                        <label className="block text-slate-300 mb-1">رقم RC (اختياري)</label>
                         <input
                           type="text"
                           placeholder="مثال: 16/00-1234567"
                           value={formData.rc}
                           onChange={(e) => setFormData({ ...formData, rc: e.target.value })}
-                          className="w-full bg-slate-950 border border-slate-800 p-2.5 rounded-xl text-white outline-none focus:border-brand-500 font-mono text-[11px]"
+                          className="w-full bg-[#070B19] border border-slate-800 p-2 rounded-xl text-white outline-none focus:border-brand-500 font-mono text-[11px]"
                         />
                       </div>
 
                       <div>
-                        <label className="block text-slate-300 mb-1">الرقم الجبائي NIF (اختياري)</label>
+                        <label className="block text-slate-300 mb-1">رقم NIF (اختياري)</label>
                         <input
                           type="text"
                           placeholder="مثال: 001916000000000"
                           value={formData.nif}
                           onChange={(e) => setFormData({ ...formData, nif: e.target.value })}
-                          className="w-full bg-slate-950 border border-slate-800 p-2.5 rounded-xl text-white outline-none focus:border-brand-500 font-mono text-[11px]"
+                          className="w-full bg-[#070B19] border border-slate-800 p-2 rounded-xl text-white outline-none focus:border-brand-500 font-mono text-[11px]"
                         />
                       </div>
                     </div>
@@ -424,7 +565,7 @@ export const AuthPage = ({ initialMode = 'register', onClose }) => {
           )}
 
           {/* Footer note */}
-          <div className="pt-4 border-t border-slate-800/80 text-center text-[10px] text-slate-500">
+          <div className="pt-3 border-t border-slate-800/80 text-center text-[10px] text-slate-500">
             بتسجيلك أنت توافق على شروط الاستخدام وسياسة الخصوصية لمنصة Devisly الجزائر 🇩🇿
           </div>
 

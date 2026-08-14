@@ -187,28 +187,79 @@ export const AppProvider = ({ children }) => {
 
   // -------------------------------------------------------------
   // Authentication Actions
-  // -------------------------------------------------------------
-  const login = (emailOrPhone, password) => {
-    const found = accounts.find(a => 
-      (a.email.toLowerCase() === emailOrPhone.toLowerCase() || a.phone.replace(/\s+/g, '').includes(emailOrPhone.replace(/\s+/g, ''))) &&
-      (a.password === password || password === '123' || password === 'Bdktest4')
-    );
+  // Helper to normalize phone numbers (0555... vs +213555... vs spaces)
+  const normalizePhone = (phoneStr) => {
+    if (!phoneStr) return '';
+    return phoneStr.replace(/\D/g, '').replace(/^213/, '').replace(/^0/, '');
+  };
 
-    if (found) {
-      if (found.status === 'معطل') {
-        showToast('عذراً، هذا الحساب معطل مؤقتاً. يرجى التواصل مع الإدارة.');
-        return false;
-      }
-      setCurrentUser(found);
-      setIsAdminLoggedIn(false);
-      setIsImpersonating(false);
-      navigateTo('dashboard');
-      showToast(`مرحباً بك مجدداً ${found.name}! تم تسجيل الدخول بنجاح`);
-      return true;
-    } else {
-      showToast('بيانات الدخول غير صحيحة. يرجى التحقق وإعادة المحاولة.');
-      return false;
+  const login = (emailOrPhone, password) => {
+    if (!emailOrPhone || !password) {
+      showToast('يرجى إدخال رقم الهاتف أو البريد وكلمة المرور');
+      return { success: false, message: 'يرجى إدخال رقم الهاتف أو البريد وكلمة المرور' };
     }
+
+    const cleanInput = emailOrPhone.trim().toLowerCase();
+    const cleanInputPhone = normalizePhone(cleanInput);
+
+    const found = accounts.find(a => {
+      const emailMatch = a.email && a.email.toLowerCase() === cleanInput;
+      const phoneMatch = a.phone && normalizePhone(a.phone) === cleanInputPhone;
+      return (emailMatch || phoneMatch);
+    });
+
+    if (!found) {
+      showToast('لم نتمكن من العثور على حساب بهذا الرقم أو البريد.');
+      return { success: false, message: 'لم يتم العثور على حساب مسجل بهذا الرقم أو البريد الإلكتروني.' };
+    }
+
+    if (found.password !== password && password !== '123' && password !== 'Bdktest4') {
+      showToast('كلمة المرور غير صحيحة، يرجى التأكد وإعادة المحاولة.');
+      return { success: false, message: 'كلمة المرور غير صحيحة. يرجى التأكد أو استخدام "نسيت كلمة المرور".' };
+    }
+
+    if (found.status === 'معطل') {
+      showToast('عذراً، هذا الحساب معطل مؤقتاً. يرجى التواصل مع الإدارة.');
+      return { success: false, message: 'عذراً، هذا الحساب معطل مؤقتاً. يرجى التواصل مع الإدارة.' };
+    }
+
+    setCurrentUser(found);
+    setIsAdminLoggedIn(false);
+    setIsImpersonating(false);
+    navigateTo('dashboard');
+    showToast(`مرحباً بك مجدداً ${found.name}! تم تسجيل الدخول بنجاح`);
+    return { success: true };
+  };
+
+  const resetPassword = (emailOrPhone, newPassword) => {
+    if (!emailOrPhone || !newPassword) {
+      return { success: false, message: 'يرجى إدخال البيانات المطلوبة كاملة.' };
+    }
+
+    const cleanInput = emailOrPhone.trim().toLowerCase();
+    const cleanInputPhone = normalizePhone(cleanInput);
+
+    const found = accounts.find(a => {
+      const emailMatch = a.email && a.email.toLowerCase() === cleanInput;
+      const phoneMatch = a.phone && normalizePhone(a.phone) === cleanInputPhone;
+      return (emailMatch || phoneMatch);
+    });
+
+    if (!found) {
+      return { success: false, message: 'لم يتم العثور على حساب بهذا الرقم أو البريد الإلكتروني.' };
+    }
+
+    const updatedAccount = { ...found, password: newPassword };
+    const updatedAccounts = accounts.map(a => a.id === found.id ? updatedAccount : a);
+    setAccounts(updatedAccounts);
+    localStorage.setItem('devisly_accounts', JSON.stringify(updatedAccounts));
+
+    setCurrentUser(updatedAccount);
+    setIsAdminLoggedIn(false);
+    setIsImpersonating(false);
+    navigateTo('dashboard');
+    showToast(`تم تعيين كلمة المرور الجديدة وتسجيل دخولك بنجاح!`);
+    return { success: true };
   };
 
   const register = (userData) => {
@@ -470,6 +521,7 @@ export const AppProvider = ({ children }) => {
       isImpersonating,
       login,
       register,
+      resetPassword,
       quickLogin,
       loginAdmin,
       logout,
