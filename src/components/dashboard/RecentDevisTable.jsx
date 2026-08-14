@@ -1,5 +1,5 @@
 import React from 'react';
-import { FileText, ChevronLeft, ExternalLink, Edit3, ArrowRightLeft, Printer, Wrench, Share2 } from 'lucide-react';
+import { FileText, ChevronLeft, ExternalLink, Edit3, ArrowRightLeft, Printer, Wrench } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 
 export const RecentDevisTable = ({ onOpenPrintCenter, onOpenWorkOrder }) => {
@@ -67,112 +67,123 @@ export const RecentDevisTable = ({ onOpenPrintCenter, onOpenWorkOrder }) => {
         </button>
       </div>
 
-      {/* Table */}
-      <div className="overflow-x-auto">
-        <table className="w-full text-right border-collapse">
-          <thead>
-            <tr className="border-b border-slate-100 text-[11px] font-extrabold text-slate-400 uppercase">
-              <th className="py-3 px-3 text-right">رقم العرض</th>
-              <th className="py-3 px-3 text-right">العميل</th>
-              <th className="py-3 px-3 text-right">المبلغ</th>
-              <th className="py-3 px-3 text-right">التاريخ</th>
-              <th className="py-3 px-3 text-center">الحالة</th>
-              <th className="py-3 px-3 text-center">الإجراءات والطباعة</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100 text-xs font-bold text-slate-700">
-            {recentQuotes.map((quote) => (
-              <tr key={quote.id} className="hover:bg-slate-50/80 transition-colors group">
-                {/* Number */}
-                <td className="py-3.5 px-3 text-slate-900 font-mono font-extrabold text-xs">
-                  {quote.number}
-                </td>
+      {/* Table or Empty State */}
+      {recentQuotes.length === 0 ? (
+        <div className="py-12 text-center text-slate-400 space-y-3">
+          <div className="w-12 h-12 rounded-2xl bg-brand-50 text-brand-600 flex items-center justify-center mx-auto">
+            <FileText className="w-6 h-6 stroke-[2.2]" />
+          </div>
+          <p className="text-xs font-bold text-slate-600">لم تقم بإنشاء أي عرض سعر بعد في مساحة عملك</p>
+          <button
+            onClick={() => setIsBuilderOpen(true)}
+            className="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs font-black shadow-sm transition-all"
+          >
+            + إنشاء أول عرض سعر الآن
+          </button>
+        </div>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="w-full text-right border-collapse">
+            <thead>
+              <tr className="border-b border-slate-100 text-[11px] font-extrabold text-slate-400 uppercase">
+                <th className="py-3 px-3 text-right">رقم العرض</th>
+                <th className="py-3 px-3 text-right">العميل</th>
+                <th className="py-3 px-3 text-right">المبلغ</th>
+                <th className="py-3 px-3 text-right">التاريخ</th>
+                <th className="py-3 px-3 text-center">الحالة</th>
+                <th className="py-3 px-3 text-center">الإجراءات والطباعة</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100 text-xs font-bold text-slate-700">
+              {recentQuotes.map((quote) => (
+                <tr key={quote.id} className="hover:bg-slate-50/80 transition-colors group">
+                  {/* Number */}
+                  <td className="py-3.5 px-3 text-slate-900 font-mono font-extrabold text-xs">
+                    {quote.number}
+                  </td>
 
-                {/* Client */}
-                <td className="py-3.5 px-3">
-                  <span className="font-bold text-slate-900 block truncate max-w-[180px]">
-                    {quote.clientName}
-                  </span>
-                </td>
+                  {/* Client */}
+                  <td className="py-3.5 px-3">
+                    <span className="font-bold text-slate-900 block truncate max-w-[180px]">
+                      {quote.clientName}
+                    </span>
+                  </td>
 
-                {/* Amount */}
-                <td className="py-3.5 px-3 font-extrabold text-slate-900">
-                  {formatDZD(quote.total)}
-                </td>
+                  {/* Amount */}
+                  <td className="py-3.5 px-3 font-extrabold text-slate-900">
+                    {formatDZD(quote.total)}
+                  </td>
 
-                {/* Date */}
-                <td className="py-3.5 px-3 text-slate-500 font-mono text-[11px]">
-                  {quote.date}
-                </td>
+                  {/* Date */}
+                  <td className="py-3.5 px-3 text-slate-500 font-mono text-[11px]">
+                    {quote.date}
+                  </td>
 
-                {/* Status */}
-                <td className="py-3.5 px-3 text-center">
-                  {getStatusBadge(quote.status)}
-                </td>
+                  {/* Status */}
+                  <td className="py-3.5 px-3 text-center">
+                    {getStatusBadge(quote.status)}
+                  </td>
 
-                {/* Actions */}
-                <td className="py-3.5 px-3 text-center">
-                  <div className="flex items-center justify-center gap-1">
-                    {/* View as Client Portal */}
-                    <button
-                      onClick={() => setPublicPreviewDevis(quote)}
-                      className="p-1.5 text-slate-400 hover:text-brand-600 hover:bg-brand-50 rounded-lg transition-colors"
-                      title="معاينة العرض كعميل / رابط عام"
-                    >
-                      <ExternalLink className="w-4 h-4" />
-                    </button>
+                  {/* Actions */}
+                  <td className="py-3.5 px-3 text-center">
+                    <div className="flex items-center justify-center gap-1">
+                      {/* View as Client Portal */}
+                      <button
+                        onClick={() => setPublicPreviewDevis(quote)}
+                        className="p-1.5 text-slate-400 hover:text-brand-600 hover:bg-brand-50 rounded-lg transition-colors"
+                        title="معاينة العرض كعميل / رابط عام"
+                      >
+                        <ExternalLink className="w-4 h-4" />
+                      </button>
 
-                    {/* Print Center Modal */}
-                    {onOpenPrintCenter && (
+                      {/* Print Center Modal */}
                       <button
                         onClick={() => onOpenPrintCenter(quote)}
-                        className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                        className="p-1.5 text-slate-400 hover:text-brand-600 hover:bg-brand-50 rounded-lg transition-colors"
                         title="مركز الطباعة (A4 / A5 / Thermal)"
                       >
                         <Printer className="w-4 h-4" />
                       </button>
-                    )}
 
-                    {/* Work Order if accepted */}
-                    {quote.status === 'مقبول' && onOpenWorkOrder && (
+                      {/* Work Order Modal */}
+                      {onOpenWorkOrder && (
+                        <button
+                          onClick={() => onOpenWorkOrder(quote)}
+                          className="p-1.5 text-slate-400 hover:text-teal-600 hover:bg-teal-50 rounded-lg transition-colors"
+                          title="أمر عمل ومحضر استلام (Bon de Travail / PV)"
+                        >
+                          <Wrench className="w-4 h-4" />
+                        </button>
+                      )}
+
+                      {/* Edit */}
                       <button
-                        onClick={() => onOpenWorkOrder(quote)}
-                        className="p-1.5 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
-                        title="إنشاء أمر عمل ومحضر تسليم (Bon de Travail)"
+                        onClick={() => {
+                          setEditingDevis(quote);
+                          setIsBuilderOpen(true);
+                        }}
+                        className="p-1.5 text-slate-400 hover:text-brand-600 hover:bg-brand-50 rounded-lg transition-colors"
+                        title="تعديل العرض"
                       >
-                        <Wrench className="w-4 h-4" />
+                        <Edit3 className="w-4 h-4" />
                       </button>
-                    )}
 
-                    {/* Edit */}
-                    <button
-                      onClick={() => {
-                        setEditingDevis(quote);
-                        setIsBuilderOpen(true);
-                      }}
-                      className="p-1.5 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
-                      title="تعديل العرض"
-                    >
-                      <Edit3 className="w-4 h-4" />
-                    </button>
-
-                    {/* Convert to invoice if accepted */}
-                    {quote.status === 'مقبول' && (
+                      {/* Convert to Invoice */}
                       <button
                         onClick={() => convertDevisToInvoice(quote)}
                         className="p-1.5 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
-                        title="تحويل إلى فاتورة بضغطة واحدة"
+                        title="تحويل إلى فاتورة"
                       >
                         <ArrowRightLeft className="w-4 h-4" />
                       </button>
-                    )}
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 };

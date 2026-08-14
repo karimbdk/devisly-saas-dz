@@ -175,15 +175,15 @@ export const AppProvider = ({ children }) => {
   };
 
   // -------------------------------------------------------------
-  // Multi-Tenant Scoped Data (Filtered strictly by active user)
+  // Multi-Tenant Scoped Data (Strictly isolated by active user)
   // -------------------------------------------------------------
-  const activeUserId = currentUser ? currentUser.id : 'usr-1';
+  const activeUserId = currentUser ? currentUser.id : null;
 
-  const userClients = allClients.filter(c => c.userId === activeUserId || !c.userId);
-  const userServices = allServices.filter(s => s.userId === activeUserId || !s.userId);
-  const userDevisList = allDevis.filter(d => d.userId === activeUserId || !d.userId);
-  const userInvoices = allInvoices.filter(i => i.userId === activeUserId || !i.userId);
-  const userPayments = allPayments.filter(p => p.userId === activeUserId || !p.userId);
+  const userClients = activeUserId ? allClients.filter(c => c.userId === activeUserId) : [];
+  const userServices = activeUserId ? allServices.filter(s => s.userId === activeUserId) : [];
+  const userDevisList = activeUserId ? allDevis.filter(d => d.userId === activeUserId) : [];
+  const userInvoices = activeUserId ? allInvoices.filter(i => i.userId === activeUserId) : [];
+  const userPayments = activeUserId ? allPayments.filter(p => p.userId === activeUserId) : [];
 
   // -------------------------------------------------------------
   // Authentication Actions

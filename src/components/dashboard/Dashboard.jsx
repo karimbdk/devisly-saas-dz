@@ -97,33 +97,33 @@ export const Dashboard = ({ onOpenPrintCenter, onOpenWorkOrder }) => {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
         <KpiCard
           title="قيمة العروض"
-          value={formatDZD(stats.totalDevisAmount || 2450000)}
-          change="15%+"
+          value={formatDZD(stats.totalDevisAmount)}
+          change={stats.totalDevisAmount > 0 ? "15%+" : "0%"}
           isPositive={true}
           iconType="file"
         />
 
         <KpiCard
           title="نسبة القبول"
-          value={`${stats.acceptanceRate || 68}%`}
-          change="4%-"
-          isPositive={false}
+          value={`${stats.acceptanceRate}%`}
+          change={stats.acceptanceRate > 0 ? "8%+" : "0%"}
+          isPositive={stats.acceptanceRate >= 50}
           iconType="chart"
         />
 
         <KpiCard
           title="المبالغ المحصلة"
-          value={formatDZD(stats.totalCollected || 1245000)}
-          change="18%+"
+          value={formatDZD(stats.totalCollected)}
+          change={stats.totalCollected > 0 ? "12%+" : "0%"}
           isPositive={true}
           iconType="wallet"
         />
 
         <KpiCard
           title="المبالغ المتأخرة"
-          value={formatDZD(stats.totalOverdue || 287500)}
-          change="12%+"
-          isPositive={false}
+          value={formatDZD(stats.totalOverdue)}
+          change={stats.totalOverdue > 0 ? "متأخر" : "0 دج"}
+          isPositive={stats.totalOverdue === 0}
           iconType="alert"
         />
       </div>
