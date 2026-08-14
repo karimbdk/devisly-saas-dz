@@ -61,6 +61,21 @@ export const AppProvider = ({ children }) => {
     return saved ? JSON.parse(saved) : INITIAL_PAYMENTS;
   });
 
+  const [allNotifications, setAllNotifications] = useState(() => {
+    const saved = localStorage.getItem('devisly_notifications');
+    return saved ? JSON.parse(saved) : [
+      {
+        id: "notif-1",
+        userId: "usr-1",
+        title: "مرحباً بك في Devisly الجزائر! 🇩🇿",
+        message: "تم تفعيل حسابك بنجاح، يمكنك الآن إنشاء أول عرض سعر ومشاركته عبر واتساب.",
+        type: "success",
+        date: "منذ قليل",
+        read: false
+      }
+    ];
+  });
+
   // 6. Router & Active Path State
   const [currentPath, setCurrentPath] = useState(() => {
     const hash = window.location.hash.replace(/^#\/?/, '');
@@ -520,6 +535,56 @@ export const AppProvider = ({ children }) => {
     avgQuoteValue: userDevisList.length > 0 ? Math.round(totalDevisAmount / userDevisList.length) : 0
   };
 
+  const updateAccountInfo = (userId, updatedFields) => {
+    setAccounts(prev => {
+      const updated = prev.map(a => a.id === userId ? { ...a, ...updatedFields } : a);
+      localStorage.setItem('devisly_accounts', JSON.stringify(updated));
+      return updated;
+    });
+    if (currentUser && currentUser.id === userId) {
+      setCurrentUser(prev => ({ ...prev, ...updatedFields }));
+    }
+    showToast(`تم تحديث بيانات الحساب والاشتراك بنجاح!`);
+  };
+
+  const deleteAccount = (userId) => {
+    setAccounts(prev => {
+      const updated = prev.filter(a => a.id !== userId);
+      localStorage.setItem('devisly_accounts', JSON.stringify(updated));
+      return updated;
+    });
+    setAllDevis(prev => prev.filter(d => d.userId !== userId));
+    setAllInvoices(prev => prev.filter(i => i.userId !== userId));
+    setAllPayments(prev => prev.filter(p => p.userId !== userId));
+    setAllClients(prev => prev.filter(c => c.userId !== userId));
+    setAllServices(prev => prev.filter(s => s.userId !== userId));
+    showToast(`تم حذف الحساب وجميع سجلاته بنجاح.`);
+  };
+
+  const sendNotification = ({ userId, title, message, type = 'info', isBroadcast = false }) => {
+    const newNotif = {
+      id: `notif-${Date.now()}`,
+      userId: isBroadcast ? null : userId,
+      isBroadcast,
+      title,
+      message,
+      type,
+      date: 'الآن',
+      read: false
+    };
+    setAllNotifications(prev => {
+      const updated = [newNotif, ...prev];
+      localStorage.setItem('devisly_notifications', JSON.stringify(updated));
+      return updated;
+    });
+    showToast(isBroadcast ? 'تم إرسال الإشعار لجميع المستخدمين بنجاح!' : 'تم إرسال الإشعار للمستخدم بنجاح!');
+  };
+
+  // Scoped notifications for current user
+  const userNotifications = activeUserId
+    ? allNotifications.filter(n => n.userId === activeUserId || n.isBroadcast)
+    : [];
+
   return (
     <AppContext.Provider value={{
       // Users & Auth
@@ -531,6 +596,11 @@ export const AppProvider = ({ children }) => {
       login,
       register,
       resetPassword,
+      updateAccountInfo,
+      deleteAccount,
+      sendNotification,
+      notifications: userNotifications,
+      allNotifications,
       quickLogin,
       loginAdmin,
       logout,

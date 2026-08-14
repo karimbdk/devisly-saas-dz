@@ -33,38 +33,12 @@ export const Navbar = ({ onOpenPrintCenter, onOpenLanding }) => {
     devisList,
     activeTab,
     setActiveTab,
-    setPublicPreviewDevis
+    setPublicPreviewDevis,
+    notifications = []
   } = useApp();
 
   const [showNotifications, setShowNotifications] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
-
-  const notifications = [
-    {
-      id: 1,
-      title: "وافق الزبون على العرض #Q-2024-058",
-      subtitle: "مؤسسة البناء الحديث — 125,000 دج",
-      time: "منذ 25 دقيقة",
-      type: "success",
-      devisId: "q-058"
-    },
-    {
-      id: 2,
-      title: "طلب تعديل على العرض #Q-2024-055",
-      subtitle: "ورشة الحدادة المتقنة: تعديل موعد التسليم",
-      time: "منذ ساعتين",
-      type: "warning",
-      devisId: "q-055"
-    },
-    {
-      id: 3,
-      title: "فاتورة متأخرة الدفع #INV-2024-021",
-      subtitle: "مؤسسة البناء الحديث — 287,500 دج",
-      time: "اليوم 09:00",
-      type: "danger",
-      tab: "invoices"
-    }
-  ];
 
   return (
     <header className="sticky top-0 z-40 bg-white border-b border-slate-200 shadow-sm no-print">
