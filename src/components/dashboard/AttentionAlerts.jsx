@@ -3,7 +3,35 @@ import { AlertCircle, Clock, Calendar, ChevronLeft, Bell } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 
 export const AttentionAlerts = () => {
-  const { attentionAlerts, setActiveTab } = useApp();
+  const { attentionAlerts, alerts, setActiveTab } = useApp();
+
+  const defaultAlerts = [
+    {
+      id: "alt-1",
+      type: "warning",
+      title: "مؤسسة البناء الحديث طلبت تعديل",
+      subtitle: "تعديل في أسعار مواد العزل وتاريخ التسليم بالعرض #Q-2024-055"
+    },
+    {
+      id: "alt-2",
+      type: "danger",
+      title: "فاتورة متأخرة الدفع #INV-2024-021",
+      subtitle: "مبلغ 287,500 دج مستحق منذ 15 يوماً على مؤسسة البناء الحديث"
+    },
+    {
+      id: "alt-3",
+      type: "info",
+      title: "تم قبول العرض #Q-2024-058",
+      subtitle: "مؤسسة البناء وافقت على العرض بقيمة 125,000 دج"
+    }
+  ];
+
+  const list = (attentionAlerts && attentionAlerts.length > 0) ? attentionAlerts : (alerts && alerts.length > 0) ? alerts.map(a => ({
+    id: a.id,
+    type: a.type === 'revision' ? 'warning' : a.type === 'overdue' ? 'danger' : 'info',
+    title: a.title,
+    subtitle: a.description || a.subtitle
+  })) : defaultAlerts;
 
   const getAlertIcon = (type) => {
     switch (type) {
@@ -41,7 +69,7 @@ export const AttentionAlerts = () => {
         </div>
 
         <div className="space-y-3">
-          {attentionAlerts.map((alert) => (
+          {list.map((alert) => (
             <div
               key={alert.id}
               onClick={() => setActiveTab(alert.targetTab)}

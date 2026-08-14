@@ -489,7 +489,9 @@ export const AppProvider = ({ children }) => {
       payments: userPayments,
       stats,
       alerts: ATTENTION_ALERTS,
+      attentionAlerts: ATTENTION_ALERTS,
       chartData: WEEKLY_CHART_DATA,
+      weeklyChartData: WEEKLY_CHART_DATA,
       
       // Active Tab & Language
       activeTab,

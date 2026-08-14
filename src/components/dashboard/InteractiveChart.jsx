@@ -3,7 +3,7 @@ import { ChevronDown } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 
 export const InteractiveChart = () => {
-  const { weeklyChartData, formatDZD } = useApp();
+  const { weeklyChartData, chartData, formatDZD } = useApp();
   const [timeRange, setTimeRange] = useState('هذا الأسبوع');
   const [hoveredIndex, setHoveredIndex] = useState(null);
 
@@ -15,9 +15,21 @@ export const InteractiveChart = () => {
 
   const maxVal = 800000;
 
-  // Chart data reversed for RTL display if needed, or structured from Saturday to Friday
-  // In the mockup: Right is السبت, Left is الجمعة (RTL natural flow: Saturday -> Sunday -> Monday -> Tuesday -> Wednesday -> Thursday -> Friday)
-  const data = weeklyChartData;
+  const defaultMockData = [
+    { day: "السبت", quoteAmount: 480000, collectedAmount: 320000 },
+    { day: "الأحد", quoteAmount: 620000, collectedAmount: 450000 },
+    { day: "الاثنين", quoteAmount: 350000, collectedAmount: 280000 },
+    { day: "الثلاثاء", quoteAmount: 710000, collectedAmount: 510000 },
+    { day: "الأربعاء", quoteAmount: 550000, collectedAmount: 390000 },
+    { day: "الخميس", quoteAmount: 780000, collectedAmount: 610000 },
+    { day: "الجمعة", quoteAmount: 200000, collectedAmount: 150000 }
+  ];
+
+  const data = (weeklyChartData && weeklyChartData.length > 0) ? weeklyChartData : (chartData && chartData.length > 0) ? chartData.map(d => ({
+    day: d.day,
+    quoteAmount: d.quoteAmount || d.devis || 300000,
+    collectedAmount: d.collectedAmount || d.collected || 180000
+  })) : defaultMockData;
 
   const getY = (val) => {
     return height - paddingY - (val / maxVal) * (height - 2 * paddingY);
