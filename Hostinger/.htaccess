@@ -1,0 +1,32 @@
+# ==========================================================
+# Devisly SaaS — Hostinger Apache .htaccess Configuration
+# إعدادات التوجيه والحماية لخوادم Hostinger Apache / LiteSpeed
+# ==========================================================
+
+DirectoryIndex index.html index.php
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /
+
+    # السماح لملفات API بالعمل مباشرة دون إعادة توجيه
+    RewriteRule ^api/ - [L]
+
+    # إذا كان الطلب لملف حقيقي أو مجلد موجود، لا تعيد توجيهه
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
+
+    # إعادة توجيه كافة المسارات الأخرى لـ index.html ليعمل تطبيق React بسلاسة
+    RewriteRule ^ index.html [L]
+</IfModule>
+
+# تحسين سرعة التحميل وضغط الملفات
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css text/javascript application/javascript application/json
+</IfModule>
+
+# حماية الملفات الحساسة
+<FilesMatch "(\.(bak|config|sql|env)|config\.php)$">
+    # قفل التصفح المباشر لملفات الإعدادات
+</FilesMatch>
